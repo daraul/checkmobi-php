@@ -2,7 +2,7 @@
 
 namespace checkmobi;
 
-use checkmobi\net\RequestInterface;
+use GuzzleHttp\Client;
 
 class CheckMobiRest
 {
@@ -11,77 +11,87 @@ class CheckMobiRest
 
     private $http_client;
 
-    function __construct($auth_token, $engine = RequestInterface::HANDLER_UNKNOWN, $base_url = self::BASE_URL, $version = self::API_VERSION)
+    function __construct($auth_token, Client $client, $base_url = self::BASE_URL, $version = self::API_VERSION)
     {
         if ((!isset($auth_token)) || (!$auth_token))
             throw new CheckMobiError("no auth_token specified");
 
         $url = $base_url."/".$version;
-        $this->http_client = RequestInterface::Create($url, $auth_token, $engine);
+        $this->http_client = $client;
     }
 
     public function GetAccountDetails()
     {
-        return $this->http_client->request(RequestInterface::METHOD_GET, '/my-account', FALSE);
+        return $this->http_client->request("GET", '/my-account');
     }
 
     public function GetCountriesList()
     {
-        return $this->http_client->request(RequestInterface::METHOD_GET, '/countries', FALSE);
+        return $this->http_client->request("GET", '/countries');
     }
 
     public function GetPrefixes()
     {
-        return $this->http_client->request(RequestInterface::METHOD_GET, '/prefixes', FALSE);
+        return $this->http_client->request("GET", '/prefixes');
     }
 
     public function CheckNumber($params)
     {
-        return $this->http_client->request(RequestInterface::METHOD_POST, '/checknumber', $params);
+        return $this->http_client->request("POST", '/checknumber', [
+            'body' => $params
+        ]);
     }
 
     public function RequestValidation($params)
     {
-        return $this->http_client->request(RequestInterface::METHOD_POST, '/validation/request', $params);
+        return $this->http_client->request("POST", '/validation/request', [
+            'body' => $params
+        ]);
     }
 
     public function VerifyPin($params)
     {
-        return $this->http_client->request(RequestInterface::METHOD_POST, '/validation/verify', $params);
+        return $this->http_client->request("POST", '/validation/verify', [
+            'body' => $params
+        ]);
     }
 
     public function ValidationStatus($params)
     {
         $id = $this->pop($params, "id");
-        return $this->http_client->request(RequestInterface::METHOD_GET, '/validation/status/'.$id, FALSE);
+        return $this->http_client->request("GET", '/validation/status/'.$id);
     }
 
     public function SendSMS($params)
     {
-        return $this->http_client->request(RequestInterface::METHOD_POST, '/sms/send', $params);
+        return $this->http_client->request("POST", '/sms/send', [
+            'body' => $params
+        ]);
     }
 
     public function GetSmsDetails($params)
     {
         $id = $this->pop($params, "id");
-        return $this->http_client->request(RequestInterface::METHOD_GET, '/sms/'.$id, FALSE);
+        return $this->http_client->request("GET", '/sms/'.$id);
     }
 
     public function PlaceCall($params)
     {
-        return $this->http_client->request(RequestInterface::METHOD_POST, '/call', $params);
+        return $this->http_client->request("POST", '/call', [
+            'body' => $params
+        ]);
     }
 
     public function GetCallDetails($params)
     {
         $id = $this->pop($params, "id");
-        return $this->http_client->request(RequestInterface::METHOD_GET, '/call/'.$id, FALSE);
+        return $this->http_client->request("GET", '/call/'.$id);
     }
 
     public function HangUpCall($params)
     {
         $id = $this->pop($params, "id");
-        return $this->http_client->request(RequestInterface::METHOD_DELETE, '/call/'. $id, FALSE);
+        return $this->http_client->request("DELETE", '/call/'. $id);
     }
 
     private function pop($params, $key)
